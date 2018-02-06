@@ -1,2 +1,2 @@
 # Grav-Waves
-blap blop slaps are slops
+blip blap slavs are blavs
