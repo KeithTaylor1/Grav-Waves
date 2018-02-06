@@ -1,1 +1,30 @@
+import numpy as np
+import matplotlib.pyplot as pl
+from scipy import fftpack as fftp
+#define vaiables
+T = 4*np.pi         #running time 
+s = 1000            #sample ponts
+f = 40              #frequency (Hz)
 
+m = 0 #mean of the normal distribution of the gaussian noise 
+sd = 10 #standard deviation of the normal distribution of the gaussian noise 
+
+#define P-N sine wave
+t = np.linspace(0, T, s) #time 
+N = len(t)               #no. of sample points
+Ts = (t[N-1]-t[0])/N     #sampling interval
+Fs = 1./Ts                #sampling frequency
+
+y = np.sin(2*np.pi*f*t/Fs) #provisional signal 
+noise = np.random.normal(m,sd,N) #Gaussian Noise 
+ny = y + noise #noisy signal  
+
+#plot sine wave 
+pl.figure() #necessary?
+pl.plot(t,y, label='Provisional Sine wave signal')
+pl.plot(t, ny, label='Noisy Signal')
+pl.xlabel('Time (s)')
+pl.ylabel('Amplitude')
+pl.grid()
+pl.legend()
+pl.show()
