@@ -1,2 +1,2 @@
 # Grav-Waves
-blip blap slavs are blavs
+This is where we will add our code, github becomes easy to use quite quickly, don't worry!
