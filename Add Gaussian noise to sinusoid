@@ -1,6 +1,11 @@
+# -*- coding: utf-8 -*-
+"""
+Spyder Editor
+
+This is a temporary script file.
+"""
 
 import numpy as np
-import scipy as sp
 import matplotlib.pyplot as pl
 import matplotlib.mlab as mlab
 from scipy import fftpack as fftp
@@ -23,26 +28,110 @@ y = np.sin(2*np.pi*f*t/Fs) #provisional signal
 noise = np.random.normal(m,sd,N) #Gaussian Noise 
 ny = y + noise #noisy signal 
 
-'''PSD'''
+'''ASD'''
+#no window
 NFFT = 4* Fs
-Pxx, freqs = mlab.psd(ny, NFFT = int(NFFT), Fs = Fs)
-PSD = interpolate.interp1d(freqs, Pxx)
+Pxx_nowindow, freqs = mlab.psd(ny, NFFT = int(NFFT), Fs = Fs, window=mlab.window_none)
+PSD_nowindow = interpolate.interp1d(freqs, Pxx_nowindow)
+
+#hanning window (default)
+Pxx_hanning, freqs = mlab.psd(ny, NFFT = int(NFFT), Fs = Fs, window=mlab.window_hanning)
+PSD_hanning = interpolate.interp1d(freqs, Pxx_hanning)
+
+'''
+#blackman window
+Pxx_blackman, freqs = mlab.psd(ny, NFFT = int(NFFT), Fs = Fs, window=np.blackman(N))
+PSD_blackman = interpolate.interp1d(freqs, Pxx_blackman)
+
+#hamming window
+Pxx_hamming, freqs = mlab.psd(ny, NFFT = int(NFFT), Fs = Fs, window=np.hamming(N))
+PSD_hamming = interpolate.interp1d(freqs, Pxx_hamming)
+
+#bartlett window
+Pxx_bartlett, freqs = mlab.psd(ny, NFFT = int(NFFT), Fs = Fs, window=np.bartlett(N))
+PSD_bartlett = interpolate.interp1d(freqs, Pxx_bartlett)
+'''
+
+'''Whitening
+# transform to freq domain, divide by asd, transform back
+
+df_2 = fftp.fft(ny) #2 sided fft
+df_1 = df_2[0:N//2] #1 sided fft
+
+
+
+white_ny = df_1/ np.sqrt(Pxx_hanning)
+
+white_back = np.fft.irfft(white_ny)
+'''
+
+
+
 #plot sine wave 
-pl.figure(1) #necessary?
+pl.figure(1) 
 pl.subplot(211)
+pl.title('Sine Wave')
 pl.plot(t,y, label='Provisional Sine wave signal')
 pl.xlabel('Time (s)')
 pl.ylabel('Amplitude')
 pl.grid()
 
 pl.subplot(212)
+pl.title('Sine Wave + noise')
 pl.plot(t, ny, label='Noisy Signal')
 pl.xlabel('Time (s)')
 pl.ylabel('Amplitude')
 pl.grid()
 
 pl.figure(2)
+
 pl.subplot(211)
-pl.loglog(freqs, np.sqrt(Pxx))
+pl.loglog(freqs, np.sqrt(Pxx_nowindow))
+pl.title('ASD, no window')
+pl.xlabel('Freq (Hz)')
+pl.ylabel('ASD (strain)')
+pl.grid()
+
+pl.subplot(212)
+pl.loglog(freqs, np.sqrt(Pxx_hanning))
+pl.title('ASD, hanning')
+pl.xlabel('Freq (Hz)')
+pl.ylabel('ASD (strain)')
+pl.grid()
+
+'''
+pl.figure(3)
+pl.title('Sine Wave')
+pl.plot(t,white_back, label='Whitened Signal')
+pl.xlabel('Time (s)')
+pl.ylabel('Amplitude')
+pl.grid()
+
+
+pl.figure(3)
+
+pl.subplot(211)
+pl.loglog(freqs, np.sqrt(Pxx_blackman))
+pl.title('ASD, blackman')
+pl.xlabel('Freq (Hz)')
+pl.ylabel('ASD (strain)')
+pl.grid()
+
+pl.subplot(212)
+pl.loglog(freqs, np.sqrt(Pxx_hamming))
+pl.title('ASD, hamming')
+pl.xlabel('Freq (Hz)')
+pl.ylabel('ASD (strain)')
+pl.grid()
+
+pl.figure(4)
+
+
+pl.loglog(freqs, np.sqrt(Pxx_bartlett))
+pl.title('ASD, bartlett')
+pl.xlabel('Freq (Hz)')
+pl.ylabel('ASD (strain)')
+pl.grid()
+'''
 
 pl.show()
