@@ -77,7 +77,7 @@ if 0:
     f_min = 20.
     f_max = 2000. 
     plt.figure(figsize=(10,8))
-    plt.loglog(freqs, Pxx_H1,'r',label='H1 strain')
+    plt.loglog(Pxx_H1[1], Pxx_H1[0],'r',label='H1 strain')
     plt.xlim([f_min, f_max])#, 1e-24, 1e-19])
     plt.grid('on')
     plt.ylabel('PSD ($strain^2/Hz$)')
