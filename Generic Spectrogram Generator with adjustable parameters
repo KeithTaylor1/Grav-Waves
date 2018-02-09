@@ -1,0 +1,30 @@
+''' Generic Spectrogram generator with adjustable parameters '''
+
+#Require from preceding code: 'strain' data and sampling frequency
+
+import numpy as np
+import matplotlib.pyplot as pl
+
+#tevent = (time within the data that the event occurs)       
+#deltat = (# of seconds either side of the event to record for)                    
+
+#index into the strain time series for this time interval:
+#indxt = np.where(('''time data''' >= tevent-deltat) & ('''time data '''< tevent+deltat))
+
+NFFT = int(fs/8) #what defines th optimal choice of NFFT
+
+NOVL = int(NFFT*15/16) #similalry what determines the NOVL
+
+# window = np.blackman(NFFT) i.e. choose a window which minimises spectral leakage
+
+spec_cmap='ocean'
+
+# Plot the spectrogram:
+pl.figure()
+spec_H1, freqs, bins, im = pl.specgram('''strain_data'''[indxt], NFFT=NFFT, Fs=fs, window=window, noverlap=NOVL, cmap=spec_cmap, xextent=[-deltat,deltat])
+pl.xlabel('time (s)')
+pl.ylabel('Frequency (Hz)')
+pl.colorbar()
+pl.axis([-deltat, deltat, 0, 2000]) #required if only a particular segment of data is plotted
+pl.title('Spectrogram')
+pl.show()
