@@ -30,7 +30,7 @@ ny = y + noise #noisy signal
 
 '''ASD'''
 #no window
-NFFT = 4* Fs
+NFFT = len(ny)
 Pxx_nowindow, freqs = mlab.psd(ny, NFFT = int(NFFT), Fs = Fs, window=mlab.window_none)
 PSD_nowindow = interpolate.interp1d(freqs, Pxx_nowindow)
 
@@ -38,19 +38,20 @@ PSD_nowindow = interpolate.interp1d(freqs, Pxx_nowindow)
 Pxx_hanning, freqs = mlab.psd(ny, NFFT = int(NFFT), Fs = Fs, window=mlab.window_hanning)
 PSD_hanning = interpolate.interp1d(freqs, Pxx_hanning)
 
-'''
+
+
 #blackman window
-Pxx_blackman, freqs = mlab.psd(ny, NFFT = int(NFFT), Fs = Fs, window=np.blackman(N))
+Pxx_blackman, freqs = mlab.psd(ny, NFFT = NFFT, Fs = Fs, window=np.blackman(N))
 PSD_blackman = interpolate.interp1d(freqs, Pxx_blackman)
 
 #hamming window
-Pxx_hamming, freqs = mlab.psd(ny, NFFT = int(NFFT), Fs = Fs, window=np.hamming(N))
+Pxx_hamming, freqs = mlab.psd(ny, NFFT = NFFT, Fs = Fs, window=np.hamming(N))
 PSD_hamming = interpolate.interp1d(freqs, Pxx_hamming)
 
 #bartlett window
-Pxx_bartlett, freqs = mlab.psd(ny, NFFT = int(NFFT), Fs = Fs, window=np.bartlett(N))
+Pxx_bartlett, freqs = mlab.psd(ny, NFFT = NFFT, Fs = Fs, window=np.bartlett(N))
 PSD_bartlett = interpolate.interp1d(freqs, Pxx_bartlett)
-'''
+
 
 '''Whitening
 # transform to freq domain, divide by asd, transform back
@@ -99,13 +100,6 @@ pl.xlabel('Freq (Hz)')
 pl.ylabel('ASD (strain)')
 pl.grid()
 
-'''
-pl.figure(3)
-pl.title('Sine Wave')
-pl.plot(t,white_back, label='Whitened Signal')
-pl.xlabel('Time (s)')
-pl.ylabel('Amplitude')
-pl.grid()
 
 
 pl.figure(3)
@@ -132,6 +126,15 @@ pl.title('ASD, bartlett')
 pl.xlabel('Freq (Hz)')
 pl.ylabel('ASD (strain)')
 pl.grid()
+
+'''
+pl.figure(5)
+pl.title('Whitened Signal')
+pl.plot(t,white_back, label='Whitened Signal')
+pl.xlabel('Time (s)')
+pl.ylabel('Amplitude')
+pl.grid()
 '''
 
 pl.show()
+
