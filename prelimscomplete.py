@@ -15,7 +15,8 @@ import matplotlib.mlab as mlab
 from scipy import fftpack as fftp
 from scipy import interpolate
 
-"""coloured-noise-generator
+"""
+Coloured noise generator
 
 
 Program to take signal in time domain from *.txt file in same directory and
@@ -47,7 +48,6 @@ N = len(h)
 Ts = t[1]-t[0]
 m = 0 
 sd = 10 
-
 Fs = 1/Ts
 
 hf = abs(2/N*fft.rfft(h)) # convert to freq domain
@@ -68,23 +68,25 @@ df = hf*nf
 
 
 #%%
-#random noise generator
+'''random noise generator'''
 noise = np.random.normal(m,sd,N) #Gaussian Noise 
-ny = y + noise #noisy signal 
+ny = h + noise #noisy signal 
 
 
 '''ASD'''
 #coloured noise
 NFFT = 4* Fs
-Pxx_gaussian, freqs = mlab.psd(h, NFFT = int(NFFT), Fs = Fs, window=mlab.window_hanning)
+Pxx_gaussian, freqs = mlab.psd(ny, NFFT = int(NFFT), Fs = Fs, window=mlab.window_hanning)
 PSD_gaussian = interpolate.interp1d(freqs, Pxx_gaussian)
 
 #random noise
-Pxx_coloured, freqs = mlab.psd(ny, NFFT = int(NFFT), Fs = Fs, window=mlab.window_hanning)
+Pxx_coloured, freqs = mlab.psd(??, NFFT = int(NFFT), Fs = Fs, window=mlab.window_hanning)
 PSD_coloured = interpolate.interp1d(freqs, Pxx_coloured)
 
 
-'''Whitening
+'''
+Whitening - wrong lengths
+
 # transform to freq domain, divide by asd, transform back
 
 df_2 = fftp.fft(ny) #2 sided fft
@@ -111,7 +113,7 @@ pl.grid()
 #plot added noise data
 pl.figure(2)
 pl.subplot(211)
-pl.title('Signal + coloured noise')
+pl.title('Signal + gaussian noise')
 pl.plot(t, ny, label='Noisy Signal')
 pl.xlabel('Time (s)')
 pl.ylabel('Amplitude')
@@ -142,5 +144,3 @@ pl.ylabel('ASD (strain)')
 pl.grid()
 
 pl.show()
-
-
