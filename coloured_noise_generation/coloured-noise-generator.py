@@ -39,7 +39,7 @@ hf = fft.rfft(h)  # convert signal to freq domain
 #load noise and and scale to signal, also randomise phase
 ligo_psd = np.loadtxt('H1-PSD.txt')
 xf_n = ligo_psd[1, :]
-nf = np.sqrt(ligo_psd[0, :])*np.exp(2j*np.pi*np.random.rand())
+nf = 1e22*max(abs(hf))*np.sqrt(ligo_psd[0, :])*np.exp(2j*np.pi*np.random.rand())
 
 
 # ensure both have same length in the frequency domain
@@ -52,7 +52,7 @@ elif len(hf) > len(nf):
 
 
 # combine noise and signal and convert back to time domain
-df = nf#+nf  
+df = hf+nf  
 d = fft.irfft(df)
 
 
