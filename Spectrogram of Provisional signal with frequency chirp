@@ -1,0 +1,40 @@
+''' Signal with a chirp & Spectrogram '''
+import numpy as np
+import matplotlib.pyplot as pl
+
+#define vaiables
+T = 4*np.pi         #running time 
+s = 1000            #sample ponts
+f = 40              #frequency (Hz)
+
+m = 0 #mean of the normal distribution of the gaussian noise 
+sd = 10 #standard deviation of the normal distribution of the gaussian noise 
+
+#define P-N sine wave
+t = np.linspace(0, T, s) #time 
+N = len(t)               #no. of sample points
+Ts = (t[N-1]-t[0])/N     #sampling interval
+Fs = 1./Ts                #sampling frequency
+
+y = np.sin(2*np.pi*f*t/Fs) #provisional signal 
+noise = np.random.normal(m,sd,N) #Gaussian Noise 
+ny = y + noise #noisy signal 
+
+Tophat = np.where(np.logical_and(t > 6, t < 10), 1.0, 0.0)
+
+c=(6-t)*Tophat*0.3
+y1 = np.sin((2*np.pi*f*t*(1+c))/Fs)
+ny1 = y1 + noise
+
+NFFT = int(Fs/8)
+NOVL = int(NFFT*15./16)
+window = np.blackman(NFFT)
+spec_cmap='ocean'
+
+ax1 = pl.subplot(211)
+pl.plot(t,y1)
+pl.subplot(212, sharex=ax1)
+Pxx, freqs, bins, im = pl.specgram(ny1, NFFT=NFFT, Fs=Fs, window=window, noverlap=NOVL, cmap=spec_cmap)
+pl.colorbar()
+pl.show()
+ 
