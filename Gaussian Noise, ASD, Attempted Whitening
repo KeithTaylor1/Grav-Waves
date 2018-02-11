@@ -118,13 +118,9 @@ pl.show
 xf_h = np.fft.rfftfreq(N, Ts)
 
 df_2 = fftp.fft(ny) #2 sided fft
-df_1 = df_2[0:(N//2)] #1 sided fft
-
+df_1 = df_2[0:(N//2)+1] #1 sided fft
 
 #ensure both have same length in the frequency domain
-
-''' Michael pls'''
-
 
 white_ny = df_1/ np.sqrt(Pxx_hanning)
 
