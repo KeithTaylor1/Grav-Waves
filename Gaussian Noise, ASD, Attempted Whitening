@@ -38,35 +38,19 @@ PSD_nowindow = interpolate.interp1d(freqs, Pxx_nowindow)
 Pxx_hanning, freqs = mlab.psd(ny, NFFT = int(NFFT), Fs = Fs, window=mlab.window_hanning)
 PSD_hanning = interpolate.interp1d(freqs, Pxx_hanning)
 
-
-
+'''
 #blackman window
-Pxx_blackman, freqs = mlab.psd(ny, NFFT = NFFT, Fs = Fs, window=np.blackman(N))
+Pxx_blackman, freqs = mlab.psd(ny, NFFT = NFFT, Fs = Fs, window=np.blackman(NFFT))
 PSD_blackman = interpolate.interp1d(freqs, Pxx_blackman)
 
 #hamming window
-Pxx_hamming, freqs = mlab.psd(ny, NFFT = NFFT, Fs = Fs, window=np.hamming(N))
+Pxx_hamming, freqs = mlab.psd(ny, NFFT = NFFT, Fs = Fs, window=np.hamming(NFFT))
 PSD_hamming = interpolate.interp1d(freqs, Pxx_hamming)
 
 #bartlett window
-Pxx_bartlett, freqs = mlab.psd(ny, NFFT = NFFT, Fs = Fs, window=np.bartlett(N))
+Pxx_bartlett, freqs = mlab.psd(ny, NFFT = NFFT, Fs = Fs, window=np.bartlett(NFFT))
 PSD_bartlett = interpolate.interp1d(freqs, Pxx_bartlett)
-
-
-'''Whitening
-# transform to freq domain, divide by asd, transform back
-
-df_2 = fftp.fft(ny) #2 sided fft
-df_1 = df_2[0:N//2] #1 sided fft
-
-
-
-white_ny = df_1/ np.sqrt(Pxx_hanning)
-
-white_back = np.fft.irfft(white_ny)
 '''
-
-
 
 #plot sine wave 
 pl.figure(1) 
@@ -101,7 +85,7 @@ pl.ylabel('ASD (strain)')
 pl.grid()
 
 
-
+'''
 pl.figure(3)
 
 pl.subplot(211)
@@ -126,15 +110,41 @@ pl.title('ASD, bartlett')
 pl.xlabel('Freq (Hz)')
 pl.ylabel('ASD (strain)')
 pl.grid()
-
+pl.show
 '''
+'''Whitening'''
+# transform to freq domain, divide by asd, transform back
+
+xf_h = np.fft.rfftfreq(N, Ts)
+
+df_2 = fftp.fft(ny) #2 sided fft
+df_1 = df_2[0:(N//2)] #1 sided fft
+
+
+#ensure both have same length in the frequency domain
+
+''' Michael pls'''
+
+
+white_ny = df_1/ np.sqrt(Pxx_hanning)
+
+white_back = np.fft.irfft(white_ny)
+
+white_back1 = white_back[0:N]
+
+
+
+
+
 pl.figure(5)
 pl.title('Whitened Signal')
 pl.plot(t,white_back, label='Whitened Signal')
 pl.xlabel('Time (s)')
 pl.ylabel('Amplitude')
 pl.grid()
-'''
+
 
 pl.show()
+
+
 
