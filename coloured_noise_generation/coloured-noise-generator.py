@@ -50,13 +50,12 @@ if len(hf) < len(nf):
 elif len(hf) > len(nf):
     nf = np.interp(xf_h, xf_n, nf)
     xf = xf_h
-
+#get new time scale
+t = np.linspace(0., 2*(len(xf)-1)*1/(2*xf[-1]), 2*(len(xf)-1))
 
 # combine noise and signal and convert back to time domain
-df = nf#+nf  
+df = nf+hf  
 d = fft.irfft(df)
-
-
 
 
 
