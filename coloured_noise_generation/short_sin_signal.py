@@ -12,8 +12,8 @@ import numpy as np
 
 
 t = np.arange(0, 3, 0.0001)
-h = np.sin(2*np.pi*60*t)
+h = np.sin(2*np.pi*60*t)*1e-19
 
-signal = np.array([t,h])
+signal = np.array([t,h]).T
 
 np.savetxt('signal.txt', signal)
