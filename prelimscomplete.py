@@ -40,6 +40,7 @@ h = signal[:, 1]
 
 N = len(h)
 Ts = t[1]-t[0]
+Fs = 1./Ts
 
 # convert signal to freq domain
 xf_h = fft.rfftfreq(N, Ts)
@@ -59,16 +60,20 @@ if len(hf) < len(nf):
 elif len(hf) > len(nf):
     nf = np.interp(xf_h, xf_n, nf)
     xf = xf_h
-
+#get new time scale
+t1 = np.linspace(0., 2*(len(xf)-1)*1/(2*xf[-1]), 2*(len(xf)-1))
 
 # combine noise and signal and convert back to time domain
-df = nf#+nf  
+df = nf+hf  
 d = fft.irfft(df)
 
 
 
 #%%
 '''random noise generator'''
+m = 0
+sd = 10
+
 noise = np.random.normal(m,sd,N) #Gaussian Noise 
 ny = h + noise #noisy signal 
 
@@ -76,34 +81,14 @@ ny = h + noise #noisy signal
 '''ASD'''
 #coloured noise
 NFFT = len(ny)
-NFFT1 = int(Fs/8)           #for spectograms
-NOVL = int(NFFT1*15/16)     #for spectograms
 
 Pxx_gaussian, freqs = mlab.psd(ny, NFFT = int(NFFT), Fs = Fs, window=mlab.window_hanning)
 PSD_gaussian = interpolate.interp1d(freqs, Pxx_gaussian)
 
 #random noise
-Pxx_coloured, freqs = mlab.psd(??, NFFT = int(NFFT), Fs = Fs, window=mlab.window_hanning)
+Pxx_coloured, freqs = mlab.psd(d, NFFT = int(NFFT), Fs = Fs, window=mlab.window_hanning)
 PSD_coloured = interpolate.interp1d(freqs, Pxx_coloured)
 
-#%%
-'''Spectrograms - spectrograms of the gaussian and coloured noisy data'''
-
-NFFT1 = int(Fs/8)
-NOVL = int(NFFT1*15./16)
-window = np.blackman(NFFT)
-spec_cmap='ocean'
-
-pl.figure(3)
-pl.subplot(211)
-Pxx, freqs, bins, im = pl.specgram(ny, NFFT=NFFT1, Fs=Fs, window=window, noverlap=NOVL, cmap=spec_cmap)
-pl.colorbar()
-
-pl.subplot(212)
-Pxx, freqs, bins, im = pl.specgram(??, NFFT=NFFT1, Fs=Fs, window=window, noverlap=NOVL, cmap=spec_cmap)
-pl.colorbar()
-
-pl.show()
 
 #%%
 '''Plotting - plotting the original signal, both noisy signals in the time 
@@ -111,8 +96,8 @@ pl.show()
     
 #plot original signal 
 pl.figure(1) 
-pl.title('Sine Wave')
-pl.plot(t,y, label='Provisional Sine wave signal')
+pl.title('Original Signal')
+pl.plot(t,h)
 pl.xlabel('Time (s)')
 pl.ylabel('Amplitude')
 pl.grid()
@@ -120,15 +105,15 @@ pl.grid()
 #plot gaussian noisy signal
 pl.figure(2)
 pl.subplot(211)
-pl.title('Sine Wave + gaussian noise')
-pl.plot(t, ny, label='Noisy Signal')
+pl.title('Original Signal + gaussian noise')
+pl.plot(t, ny)
 pl.xlabel('Time (s)')
 pl.ylabel('Amplitude')
 pl.grid()
 
 pl.subplot(212)
-pl.title('Sine Wave + coloured noise')
-pl.plot(t, ??, label='Noisy Signal')
+pl.title('Original signal + coloured noise')
+pl.plot(t, d)
 pl.xlabel('Time (s)')
 pl.ylabel('Amplitude')
 pl.grid()
@@ -136,10 +121,10 @@ pl.grid()
 
 
 #psd's of gaus and col
-pl.figure(4)
+pl.figure(3)
 
 pl.subplot(211)
-pl.loglog(freqs, np.sqrt(Pxx_guassian))
+pl.loglog(freqs, np.sqrt(Pxx_gaussian))
 pl.title('ASD, gaussian noise')
 pl.xlabel('Freq (Hz)')
 pl.ylabel('ASD (strain)')
@@ -153,6 +138,27 @@ pl.ylabel('ASD (strain)')
 pl.grid()
 
 pl.show
+
+
+#%%
+'''Spectrograms - spectrograms of the gaussian and coloured noisy data'''
+
+NFFT1 = int(Fs/8)
+NOVL = int(NFFT1*15./16)
+window = np.blackman(NFFT)
+spec_cmap='ocean'
+
+pl.figure(4)
+pl.subplot(211)
+Pxx, freqs, bins, im = pl.specgram(ny, NFFT=NFFT1, Fs=Fs, window=window, noverlap=NOVL, cmap=spec_cmap)
+pl.colorbar()
+
+pl.subplot(212)
+Pxx, freqs, bins, im = pl.specgram(d, NFFT=NFFT1, Fs=Fs, window=window, noverlap=NOVL, cmap=spec_cmap)
+pl.colorbar()
+
+pl.show()
+
 #%%
 '''Whitening  - transform to freq domain, divide by asd, transform back
    also plotting the whitened data in the time domain'''
@@ -171,11 +177,11 @@ gwtd = np.fft.irfft(gw)
 
 
 #coloured
-cfd2 = fftp.fft(??) #2 sided fft
+cfd2 = fftp.fft(d) #2 sided fft
 cfd1 = cfd2[0:(N//2)+1] #1 sided fft
 
 #divide by sqrt of psd to whiten
-cw = cdf1/ np.sqrt(Pxx_coloured)
+cw = cfd1/ np.sqrt(Pxx_coloured)
 #convert back to time domain
 cwtd = np.fft.irfft(cw)
 
@@ -210,50 +216,52 @@ data with a different # of points than itself'''
 data1 = gwtd * window1
 window1fft = fftp.fft(window1) / (len(window1)/2.0)
 freq = np.linspace(-0.5, 0.5, len(window1fft))
-response_g = 20 * np.log10(np.abs(fftp.fftshift(window1fft / abs(window1fft).max())))
+response = 20 * np.log10(np.abs(fftp.fftshift(window1fft / abs(window1fft).max())))
 
 
 data2 = cwtd * window1
 
-pl.figure(5)
-
-ax1 = fig1.add_subplot(3,1,1)
-ax1.plot(window1)
-ax1.set_xlabel('X')
-ax1.set_ylabel('Y')
-ax1.grid()
-'''shows spectral leakage of the window in the F domain'''
-ax2 = fig1.add_subplot(3,1,2)
-ax2.plot(freq, response_g)
-ax2.set_xlabel('Frequency')
-ax2.set_ylabel('response')
-ax2.grid()
-
-ax3 = fig1.add_subplot(3,1,3)
-ax3.plot(data1)
-ax3.set_xlabel('X')
-ax3.set_ylabel('Y')
-ax3.grid()
-
 pl.figure(6)
 
-ax1 = fig1.add_subplot(3,1,1)
-ax1.plot(window1)
-ax1.set_xlabel('X')
-ax1.set_ylabel('Y')
-ax1.grid()
+pl.subplot(3,1,1)
+pl.plot(window1)
+pl.set_xlabel('X')
+pl.set_ylabel('Y')
+pl.grid()
 '''shows spectral leakage of the window in the F domain'''
-ax2 = fig1.add_subplot(3,1,2)
-ax2.plot(freq, response_c)
-ax2.set_xlabel('Frequency')
-ax2.set_ylabel('response')
-ax2.grid()
+pl.subplot(3,1,2)
+pl.plot(freq, response)
+pl.set_xlabel('Frequency')
+pl.set_ylabel('response')
+pl.grid()
 
-ax3 = fig1.add_subplot(3,1,3)
-ax3.plot(data2)
-ax3.set_xlabel('X')
-ax3.set_ylabel('Y')
-ax3.grid()
+pl.subplot(3,1,3)
+pl.plot(data1)
+pl.set_xlabel('X')
+pl.set_ylabel('Y')
+pl.grid()
+
+pl.figure(7)
+
+pl.subplot(3,1,1)
+pl.plot(window1)
+pl.set_xlabel('X')
+pl.set_ylabel('Y')
+pl.grid()
+'''shows spectral leakage of the window in the F domain'''
+pl.subplot(3,1,2)
+pl.plot(freq, response)
+pl.set_xlabel('Frequency')
+pl.set_ylabel('response')
+pl.grid()
+
+pl.subplot(3,1,3)
+pl.plot(data2)
+pl.set_xlabel('X')
+pl.set_ylabel('Y')
+pl.grid()
 
 pl.show()
+
+
 
