@@ -31,30 +31,32 @@ ligo_psd = np.loadtxt('H1-PSD.txt')
 nf = ligo_psd[0, :]
 xf_n = 1e23*np.sqrt(ligo_psd[1, :])
 
-#load signal from *.txt file, checking user input
+# load signal from *.txt file, checking user input
 filename = input('Enter file name (including \".txt\"): ')
 while 1:
     try:
         signal = np.loadtxt(filename)
         break
     except FileNotFoundError:
-        print('File not found, please try again... ')
+        filename = input('File not found, please try again... ')
 
 t = signal[0, :]
 h = signal[1, :]
 
-
 N = len(h)
 Ts = t[1]-t[0]
-m = 0 
-sd = 10 
-Fs = 1/Ts
 
-hf = abs(2/N*fft.rfft(h)) # convert to freq domain
 xf_h = fft.rfftfreq(N, Ts)
+hf = fft.rfft(h)  # convert signal to freq domain
 
 
-#ensure both have same length in the frequency domain
+#load noise and and scale to signal, also randomise phase
+ligo_psd = np.loadtxt('H1-PSD.txt')
+xf_n = ligo_psd[1, :]
+nf = 1e22*max(abs(hf))*np.sqrt(ligo_psd[0, :])*np.exp(2j*np.pi*np.random.rand())
+
+
+# ensure both have same length in the frequency domain
 if len(hf) < len(nf):
     hf = np.interp(xf_n, xf_h, hf)
     xf = xf_n
@@ -63,7 +65,9 @@ elif len(hf) > len(nf):
     xf = xf_h
 
 
-df = hf*nf
+# combine noise and signal and convert back to time domain
+df = hf+nf  
+d = fft.irfft(df)
 
 
 
@@ -75,7 +79,7 @@ ny = h + noise #noisy signal
 
 '''ASD'''
 #coloured noise
-NFFT = 4* Fs
+NFFT = len(ny)
 Pxx_gaussian, freqs = mlab.psd(ny, NFFT = int(NFFT), Fs = Fs, window=mlab.window_hanning)
 PSD_gaussian = interpolate.interp1d(freqs, Pxx_gaussian)
 
@@ -83,64 +87,93 @@ PSD_gaussian = interpolate.interp1d(freqs, Pxx_gaussian)
 Pxx_coloured, freqs = mlab.psd(??, NFFT = int(NFFT), Fs = Fs, window=mlab.window_hanning)
 PSD_coloured = interpolate.interp1d(freqs, Pxx_coloured)
 
-
-'''
-Whitening - wrong lengths
-
-# transform to freq domain, divide by asd, transform back
-
-df_2 = fftp.fft(ny) #2 sided fft
-df_1 = df_2[0:N//2] #1 sided fft
-
-
-
-white_ny = df_1/ np.sqrt(Pxx_hanning)
-
-white_back = np.fft.irfft(white_ny)
-'''
-
-
-
-#plot original signal  
+#plot sine wave 
 pl.figure(1) 
-
-pl.title('Signal')
-pl.plot(t,h, label='signal')
+pl.title('Sine Wave')
+pl.plot(t,y, label='Provisional Sine wave signal')
 pl.xlabel('Time (s)')
 pl.ylabel('Amplitude')
 pl.grid()
 
-#plot added noise data
 pl.figure(2)
+#plot gaussian noisy signal
 pl.subplot(211)
-pl.title('Signal + gaussian noise')
+pl.title('Sine Wave + gaussian noise')
 pl.plot(t, ny, label='Noisy Signal')
 pl.xlabel('Time (s)')
 pl.ylabel('Amplitude')
 pl.grid()
 
 pl.subplot(212)
-pl.title('Signal + coloured noise')
+pl.title('Sine Wave + coloured noise')
 pl.plot(t, ??, label='Noisy Signal')
 pl.xlabel('Time (s)')
 pl.ylabel('Amplitude')
 pl.grid()
 
-#plot asd's
 pl.figure(3)
 
 pl.subplot(211)
-pl.loglog(freqs, np.sqrt(Pxx_gaussian))
-pl.title('ASD, gaussian')
+pl.loglog(freqs, np.sqrt(Pxx_guassian))
+pl.title('ASD, gaussian noise')
 pl.xlabel('Freq (Hz)')
 pl.ylabel('ASD (strain)')
 pl.grid()
 
 pl.subplot(212)
 pl.loglog(freqs, np.sqrt(Pxx_coloured))
-pl.title('ASD, coloured')
+pl.title('ASD, coloured LIGO noise')
 pl.xlabel('Freq (Hz)')
 pl.ylabel('ASD (strain)')
 pl.grid()
+
+pl.show
+
+'''Whitening  - transform to freq domain, divide by asd, transform back'''
+
+#gaussian
+# xf_h = np.fft.rfftfreq(N, Ts)
+df_2g = fftp.fft(ny) #2 sided fft
+df_1g = df_2g[0:(N//2)+1] #1 sided fft
+
+#ensure both have same length in the frequency domain
+
+white_ny = df_1g/ np.sqrt(Pxx_gaussian)
+
+white_nyback = np.fft.irfft(white_ny)
+
+white_nyback1 = white_nyback[0:N]
+
+#coloured
+df_2c = fftp.fft(??) #2 sided fft
+df_1c = df_2c[0:(N//2)+1] #1 sided fft
+
+#ensure both have same length in the frequency domain
+
+white_c = df_1g/ np.sqrt(Pxx_gaussian)
+
+white_cback = np.fft.irfft(white_c)
+
+white_cback1 = white_cback[0:N]
+
+
+
+
+
+pl.figure(5)
+pl.subplot(211)
+pl.title('Whitened Gaussian Signal')
+pl.plot(t,white_nyback, label='Whitened Signal')
+pl.xlabel('Time (s)')
+pl.ylabel('Amplitude')
+pl.grid()
+
+pl.subplot(212)
+pl.title('Whitened Coloured Signal')
+pl.plot(t,white_cback, label='Whitened Signal')
+pl.xlabel('Time (s)')
+pl.ylabel('Amplitude')
+pl.grid()
+
 
 pl.show()
