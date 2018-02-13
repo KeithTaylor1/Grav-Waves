@@ -199,7 +199,61 @@ pl.grid()
 pl.show()
 
 #%%
-'''Windowing'''
+'''Upload templates?'''
+
+#%%
+'''Windowing of whitened signals and templates'''
+
+window1 = np.blackman(1000)
+'''np.blackman cannot be applied to any 
+data with a different # of points than itself'''
+data1 = gwtd * window1
+window1fft = fftp.fft(window1) / (len(window1)/2.0)
+freq = np.linspace(-0.5, 0.5, len(window1fft))
+response_g = 20 * np.log10(np.abs(fftp.fftshift(window1fft / abs(window1fft).max())))
 
 
+data2 = cwtd * window1
+
+pl.figure(5)
+
+ax1 = fig1.add_subplot(3,1,1)
+ax1.plot(window1)
+ax1.set_xlabel('X')
+ax1.set_ylabel('Y')
+ax1.grid()
+'''shows spectral leakage of the window in the F domain'''
+ax2 = fig1.add_subplot(3,1,2)
+ax2.plot(freq, response_g)
+ax2.set_xlabel('Frequency')
+ax2.set_ylabel('response')
+ax2.grid()
+
+ax3 = fig1.add_subplot(3,1,3)
+ax3.plot(data1)
+ax3.set_xlabel('X')
+ax3.set_ylabel('Y')
+ax3.grid()
+
+pl.figure(6)
+
+ax1 = fig1.add_subplot(3,1,1)
+ax1.plot(window1)
+ax1.set_xlabel('X')
+ax1.set_ylabel('Y')
+ax1.grid()
+'''shows spectral leakage of the window in the F domain'''
+ax2 = fig1.add_subplot(3,1,2)
+ax2.plot(freq, response_c)
+ax2.set_xlabel('Frequency')
+ax2.set_ylabel('response')
+ax2.grid()
+
+ax3 = fig1.add_subplot(3,1,3)
+ax3.plot(data2)
+ax3.set_xlabel('X')
+ax3.set_ylabel('Y')
+ax3.grid()
+
+pl.show()
 
