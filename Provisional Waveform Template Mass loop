@@ -1,0 +1,77 @@
+"""
+Created on Wed Feb 14 10:28:01 2018
+
+@author: wxw587
+"""
+
+import numpy as np
+import math as m
+import matplotlib.pyplot as plt
+from numpy import pi, sin, cos, sqrt
+
+#Defining constants
+c = 3.0e8 #ms-1
+G = 6.667e-11 #m3 kg-1 s-2
+SM = 2.e30 #kg
+f_GW = 20 #Hz
+t = 0.0 #s
+mS = 2e30
+n = 0
+
+mA = 20 * mS #Initial definition of mass of BHa in solar masses
+mB = 20 * mS #Initial definition of mass of BHb in solar masses
+
+T=[]
+f=[]
+
+#For-loop of mB inside mA
+while mA <= 30 * mS:
+    while mB <= 30 * mS:
+#Minimum separation
+        a0 = (G * (mA + mB) / (pi*f_GW)**2) ** (1./3.)
+        print (a0)
+        
+        #Merge Time
+        Tmerge = (5 * c**5 * a0**4)/(256 * G**3 * mA * mB * (mA +mB))
+        print (Tmerge)
+        
+        #Separation as a function of time
+        def a(mA, mB, G, c, t):
+            return ( (a0)**4 - (256 * G**3 * mA * mB * (mA+mB) * (t))/(5 * c**5) )**(1./4.)
+        
+        #Calculates amplitude with increasing time
+        
+        while t <= Tmerge:
+            y = ( (G * (mA+mB) * a(mA, mB, G, c, t)**(-3./4.)) / (pi**2) ) ** (1./2.)
+            z = ( (G**2 * mA * mB) * (a(mA, mB, G, c, t)**(-1)) ) / (c**4)
+            s = z * (sin(2*pi*t*y))
+            T.append(t)
+            f.append(s)
+            t += 0.0001
+        print (t)
+        
+        print (len(T))
+        
+        save_txt = 0
+        
+        if save_txt:
+            file = open("TimeDomainTemplate.txt","w")
+            for i in range(len(T)):
+                file.write(str(T[i]) + " " + str(f[i]) + "\n")
+            file.close
+        
+        plt_graphs = 0
+        
+        if plt_graphs:
+            plt.plot(T, f)
+            plt.xlabel('Time/s')
+            plt.ylabel('Strain')
+            plt.savefig('FullChirp.jpg')
+            plt.grid
+            plt.show()
+            
+        mB = mB + mS
+        n = n+1
+    mA = mA + mS
+    mB = 20 * mS
+    print(n)
