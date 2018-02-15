@@ -8,6 +8,7 @@ import numpy as np
 import math as m
 import matplotlib.pyplot as plt
 from numpy import pi, sin, cos, sqrt
+import random
 
 #Defining constants
 c = 3.0e8 #ms-1
@@ -21,8 +22,11 @@ n = 0
 mA = 20 * mS #Initial definition of mass of BHa in solar masses
 mB = 20 * mS #Initial definition of mass of BHb in solar masses
 
-T=[]
-f=[]
+T=[] #time 
+f=[] #strain
+W=[] #mA and mB
+L=[] #list of mA, mB and no. of iterations
+P=[]
 
 #For-loop of mB inside mA
 while mA <= 30 * mS:
@@ -52,6 +56,21 @@ while mA <= 30 * mS:
         
         print (len(T))
         
+        output_array = 1
+        
+        if output_array:
+            Template = np.array([T, f]).T
+            P.append(Template)
+                                
+        SNR = 1
+        
+        if SNR:#Call Michael's Function for the Signal-to-Noise Ratio
+            #SNR(template)
+            r = random.randint(1,101)
+            W = [mA/mS, mB/mS, r] 
+            L.append(W) #List of Mass of A and B for each iteration, iteration denoted n but can be called by L[i] for ith iteration
+            
+            
         save_txt = 0
         
         if save_txt:
@@ -75,3 +94,22 @@ while mA <= 30 * mS:
     mA = mA + mS
     mB = 20 * mS
     print(n)
+    
+'''Plot of Final Template'''
+
+
+SNR_max = np.array(L)[:, 2].max()  #maximum value of third column of L
+Imax = np.argmax(np.array(L)[:,2]) #itration number of the maximum value of col. 3
+
+print(SNR_max)
+print(Imax)
+   
+Max_Masses = L[Imax]   
+
+plt.figure()
+plt.plot(P[Imax])
+plt.xlabel('Time/s')
+plt.ylabel('Strain')           
+plt.grid
+plt.show() 
+    
