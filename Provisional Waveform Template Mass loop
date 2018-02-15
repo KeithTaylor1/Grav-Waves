@@ -60,13 +60,13 @@ while mA <= 30 * mS:
         
         if output_array:
             Template = np.array([T, f]).T
-            P.append(Template)
+            P.append(Template) #List of all templates 
                                 
         SNR = 1
         
         if SNR:#Call Michael's Function for the Signal-to-Noise Ratio
             #SNR(template)
-            r = random.randint(1,101)
+            r = random.randint(1,101) #random number represents the SNR value corresponding to each template
             W = [mA/mS, mB/mS, r] 
             L.append(W) #List of Mass of A and B for each iteration, iteration denoted n but can be called by L[i] for ith iteration
             
@@ -95,7 +95,7 @@ while mA <= 30 * mS:
     mB = 20 * mS
     print(n)
     
-'''Plot of Final Template'''
+'''Plot of Max (random number) Template'''
 
 
 SNR_max = np.array(L)[:, 2].max()  #maximum value of third column of L
