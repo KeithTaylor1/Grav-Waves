@@ -1,4 +1,4 @@
-def colouredNoise(*signal, txtout=False):
+def colouredNoise(signal=None, txtout=False):
     '''coloured-noise-generator
     Created on Tue Feb  15 16:23:46 2018
     
