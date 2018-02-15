@@ -15,6 +15,8 @@ import matplotlib.mlab as mlab
 from scipy import fftpack as fftp
 from scipy import interpolate
 
+MakePlots = 1
+
 """
 Coloured noise generator
 
@@ -93,51 +95,50 @@ PSD_coloured = interpolate.interp1d(freqs, Pxx_coloured)
 #%%
 '''Plotting - plotting the original signal, both noisy signals in the time 
    domain, both signals PSD's'''
-    
-#plot original signal 
-pl.figure(1) 
-pl.title('Original Signal')
-pl.plot(t,h)
-pl.xlabel('Time (s)')
-pl.ylabel('Amplitude')
-pl.grid()
 
-#plot gaussian noisy signal
-pl.figure(2)
-pl.subplot(211)
-pl.title('Original Signal + gaussian noise')
-pl.plot(t, ny)
-pl.xlabel('Time (s)')
-pl.ylabel('Amplitude')
-pl.grid()
+if MakePlots:    
+    #plot original signal 
+    pl.figure(1) 
+    pl.title('Original Signal')
+    pl.plot(t,h)
+    pl.xlabel('Time (s)')
+    pl.ylabel('Amplitude')
+    pl.grid()
 
-pl.subplot(212)
-pl.title('Original signal + coloured noise')
-pl.plot(t, d)
-pl.xlabel('Time (s)')
-pl.ylabel('Amplitude')
-pl.grid()
+    #plot gaussian noisy signal
+    pl.figure(2)
+    pl.subplot(211)
+    pl.title('Original Signal + gaussian noise')
+    pl.plot(t, ny)
+    pl.xlabel('Time (s)')
+    pl.ylabel('Amplitude')
+    pl.grid()
 
+    pl.subplot(212)
+    pl.title('Original signal + coloured noise')
+    pl.plot(t, d)
+    pl.xlabel('Time (s)')
+    pl.ylabel('Amplitude')
+    pl.grid()
 
+    #psd's of gaus and col
+    pl.figure(3)
 
-#psd's of gaus and col
-pl.figure(3)
+    pl.subplot(211)
+    pl.loglog(freqs, np.sqrt(Pxx_gaussian))
+    pl.title('ASD, gaussian noise')
+    pl.xlabel('Freq (Hz)')
+    pl.ylabel('ASD (strain)')
+    pl.grid()
 
-pl.subplot(211)
-pl.loglog(freqs, np.sqrt(Pxx_gaussian))
-pl.title('ASD, gaussian noise')
-pl.xlabel('Freq (Hz)')
-pl.ylabel('ASD (strain)')
-pl.grid()
+    pl.subplot(212)
+    pl.loglog(freqs, np.sqrt(Pxx_coloured))
+    pl.title('ASD, coloured LIGO noise')
+    pl.xlabel('Freq (Hz)')
+    pl.ylabel('ASD (strain)')
+    pl.grid()
 
-pl.subplot(212)
-pl.loglog(freqs, np.sqrt(Pxx_coloured))
-pl.title('ASD, coloured LIGO noise')
-pl.xlabel('Freq (Hz)')
-pl.ylabel('ASD (strain)')
-pl.grid()
-
-pl.show
+    pl.show
 
 
 #%%
@@ -148,16 +149,17 @@ NOVL = int(NFFT1*15./16)
 window = np.blackman(NFFT)
 spec_cmap='ocean'
 
-pl.figure(4)
-pl.subplot(211)
-Pxx, freqs, bins, im = pl.specgram(ny, NFFT=NFFT1, Fs=Fs, window=window, noverlap=NOVL, cmap=spec_cmap)
-pl.colorbar()
+if MakePlots:
+    pl.figure(4)
+    pl.subplot(211)
+    Pxx, freqs, bins, im = pl.specgram(ny, NFFT=NFFT1, Fs=Fs, window=window, noverlap=NOVL, cmap=spec_cmap)
+    pl.colorbar()
 
-pl.subplot(212)
-Pxx, freqs, bins, im = pl.specgram(d, NFFT=NFFT1, Fs=Fs, window=window, noverlap=NOVL, cmap=spec_cmap)
-pl.colorbar()
+    pl.subplot(212)
+    Pxx, freqs, bins, im = pl.specgram(d, NFFT=NFFT1, Fs=Fs, window=window, noverlap=NOVL, cmap=spec_cmap)
+    pl.colorbar()
 
-pl.show()
+    pl.show()
 
 #%%
 '''Whitening  - transform to freq domain, divide by asd, transform back
@@ -185,25 +187,26 @@ cw = cfd1/ np.sqrt(Pxx_coloured)
 #convert back to time domain
 cwtd = np.fft.irfft(cw)
 
+if MakePlots:
+    pl.figure(5)
 
-pl.figure(5)
-pl.subplot(211)
-pl.title('Whitened Gaussian Signal')
-pl.plot(t,gwtd, label='Whitened Signal')
-pl.xlabel('Time (s)')
-pl.ylabel('Amplitude')
-pl.grid()
+    pl.subplot(211)
+    pl.title('Whitened Gaussian Signal')
+    pl.plot(t,gwtd, label='Whitened Signal')
+    pl.xlabel('Time (s)')
+    pl.ylabel('Amplitude')
+    pl.grid()
 
-pl.subplot(212)
-pl.title('Whitened Coloured Signal')
-pl.plot(t,cwtd, label='Whitened Signal')
-pl.xlabel('Time (s)')
-pl.ylabel('Amplitude')
-pl.grid()
+    pl.subplot(212)
+    pl.title('Whitened Coloured Signal')
+    pl.plot(t,cwtd, label='Whitened Signal')
+    pl.xlabel('Time (s)')
+    pl.ylabel('Amplitude')
+    pl.grid()
 
+    pl.show()
 
-pl.show()
-
+    
 #%%
 '''Upload templates?'''
 
@@ -221,47 +224,48 @@ response = 20 * np.log10(np.abs(fftp.fftshift(window1fft / abs(window1fft).max()
 
 data2 = cwtd * window1
 
-pl.figure(6)
+if MakePlots:
+    pl.figure(6)
 
-pl.subplot(3,1,1)
-pl.plot(window1)
-pl.set_xlabel('X')
-pl.set_ylabel('Y')
-pl.grid()
-'''shows spectral leakage of the window in the F domain'''
-pl.subplot(3,1,2)
-pl.plot(freq, response)
-pl.set_xlabel('Frequency')
-pl.set_ylabel('response')
-pl.grid()
+    pl.subplot(3,1,1)
+    pl.plot(window1)
+    pl.set_xlabel('X')
+    pl.set_ylabel('Y')
+    pl.grid()
+    '''shows spectral leakage of the window in the F domain'''
+    pl.subplot(3,1,2)
+    pl.plot(freq, response)
+    pl.set_xlabel('Frequency')
+    pl.set_ylabel('response')
+    pl.grid()
 
-pl.subplot(3,1,3)
-pl.plot(data1)
-pl.set_xlabel('X')
-pl.set_ylabel('Y')
-pl.grid()
+    pl.subplot(3,1,3)
+    pl.plot(data1)
+    pl.set_xlabel('X')
+    pl.set_ylabel('Y')
+    pl.grid()
 
-pl.figure(7)
+    pl.figure(7)
 
-pl.subplot(3,1,1)
-pl.plot(window1)
-pl.set_xlabel('X')
-pl.set_ylabel('Y')
-pl.grid()
-'''shows spectral leakage of the window in the F domain'''
-pl.subplot(3,1,2)
-pl.plot(freq, response)
-pl.set_xlabel('Frequency')
-pl.set_ylabel('response')
-pl.grid()
+    pl.subplot(3,1,1)
+    pl.plot(window1)
+    pl.set_xlabel('X')
+    pl.set_ylabel('Y')
+    pl.grid()
+    '''shows spectral leakage of the window in the F domain'''
+    pl.subplot(3,1,2)
+    pl.plot(freq, response)
+    pl.set_xlabel('Frequency')
+    pl.set_ylabel('response')
+    pl.grid()
 
-pl.subplot(3,1,3)
-pl.plot(data2)
-pl.set_xlabel('X')
-pl.set_ylabel('Y')
-pl.grid()
+    pl.subplot(3,1,3)
+    pl.plot(data2)
+    pl.set_xlabel('X')
+    pl.set_ylabel('Y')
+    pl.grid()
 
-pl.show()
+    pl.show()
 
 
 
