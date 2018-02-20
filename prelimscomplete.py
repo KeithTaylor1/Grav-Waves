@@ -164,17 +164,7 @@ if MakePlots:
 
 #%%
 '''Windowing of whitened signals and templates'''
-
-window1 = np.blackman(1000)
-'''np.blackman cannot be applied to any 
-data with a different # of points than itself'''
-data1 = gwtd * window1
-window1fft = fftp.fft(window1) / (len(window1)/2.0)
-freq = np.linspace(-0.5, 0.5, len(window1fft))
-response = 20 * np.log10(np.abs(fftp.fftshift(window1fft / abs(window1fft).max())))
-
-
-data2 = cwtd * window1
+WindowFunc(NFFT, gwtd, cwtd)
 
 if MakePlots:
     pl.figure(6)
