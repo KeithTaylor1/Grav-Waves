@@ -11,6 +11,7 @@ def ASDGenerator(ny, d):
     
     import matplotlib.mlab as mlab
     import numpy as np
+    from scipy import interpolate
     
      
     t1 = ny[:, 0]
@@ -39,4 +40,5 @@ def ASDGenerator(ny, d):
     np.savetxt('ASDgaus.txt', np.array([freqs, np.sqrt(Pxx_gaussian)]).T)
     np.savetxt('ASDcol.txt', np.array([freqs, np.sqrt(Pxx_coloured)]).T)
     
-    return np.array([freqs, np.sqrt(Pxx_gaussian)]).T, np.array([freqs, np.sqrt(Pxx_coloured)]).T
+    return np.array([freqs, np.sqrt(Pxx_gaussian)]).T, np.array([freqs, np.sqrt(Pxx_coloured)]).T, PSD_gaussian, PSD_coloured 
+
