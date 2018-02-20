@@ -10,10 +10,17 @@ def Window(gwtd, cwtd):
     
     import numpy as np
     from scipy import fftpack as fftp
+    import scipy as sp
     
-    window1 = np.blackman(1000)
     
+    t = gwtd[:, 0]
     
+    Ts = t[1]-t[0]
+    Fs = 1./Ts
+    
+    NFFT = 4 * Fs
+    
+    window1 = sp.signal.tukey(NFFT)
     window1fft = fftp.fft(window1) / (len(window1)/2.0)
     freq = np.linspace(-0.5, 0.5, len(window1fft))
     response = 20 * np.log10(np.abs(fftp.fftshift(window1fft / abs(window1fft).max())))
