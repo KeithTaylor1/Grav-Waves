@@ -1,4 +1,4 @@
- def templateGen(mA, mB, Ts, zeroPad=False, makePlots=False, txtout=False):
+def templateGen(mA, mB, Ts, zeroPad=False, makePlots=False, txtout=False):
     '''TemplateGen
     Author: Emma
     
@@ -38,7 +38,6 @@
     import matplotlib.pyplot as plt
     from numpy import pi, sin
     
-    zeroPad = forNoise
     
     #Defining constants
     c = 3.0e8 #ms-1
