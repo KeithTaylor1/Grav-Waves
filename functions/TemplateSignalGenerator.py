@@ -1,4 +1,4 @@
-def templateGen(mA, mB, Ts, zeroPad=False, makePlots=False, txtout=False):
+def templateGen(mA, mB, Ts, zeroPad=False, makePlots=False, savePlots=False, txtout=False):
     '''TemplateGen
     Author: Emma
     
@@ -11,7 +11,7 @@ def templateGen(mA, mB, Ts, zeroPad=False, makePlots=False, txtout=False):
         Mass of BH A
         
     mB: double
-        Mass of BH2
+        Mass of BH B
         
     Ts: double
         Sample spacing
@@ -24,7 +24,7 @@ def templateGen(mA, mB, Ts, zeroPad=False, makePlots=False, txtout=False):
         output plot of signal
         
     txtout: bool
-        output text file
+        output text file if true, else return signal
         
     Return
     ------
@@ -84,26 +84,26 @@ def templateGen(mA, mB, Ts, zeroPad=False, makePlots=False, txtout=False):
             T.append(t)
             t += Ts
         
-        f = np.pad(f, (int((32-Tmerge)*np.rand()/Ts),0), 'constant', constant_values=(0,0))
+        f = np.pad(f, (int((32-Tmerge)*np.random.rand()/Ts),0), 'constant', constant_values=(0,0))
         f = np.pad(f, (0,len(T)-len(f)), 'constant', constant_values=(0,0))
     
     if txtout:
-        file = open("TimeDomainTemplate.txt","w")
+        file = open(f'Template{int(mA/SM)}_{int(mB/SM)}.txt',"w")
         #file.write("Time/s" + " " + "Strain" + "\n")
         for i in range(len(T)):
             file.write(str(T[i]) + " " + str(f[i]) + "\n")
         file.close
-    else:
-        return np.array([T,f]).T
     
     if makePlots:    
         plt.plot(T, f)
         #plt.xscale('log')
         plt.xlabel('Time/s')
         plt.ylabel('Strain')
-        plt.savefig('FullChirp.jpg')
+        if savePlots: plt.savefig(f'Template{int(mA/SM)}_{int(mB/SM)}.jpg')
         plt.grid
         plt.show()
+        
+    return np.array([T,f]).T
 
 
 
@@ -112,4 +112,4 @@ def templateGen(mA, mB, Ts, zeroPad=False, makePlots=False, txtout=False):
 
 
 if __name__ == '__main__':
-    templateGen(50, 50, 1/4096, zeroPad=0, makePlots=1, txtout=1)
+    templateGen(50, 50, 1/4096, zeroPad=1, makePlots=1, txtout=1)
