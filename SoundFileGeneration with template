@@ -1,0 +1,50 @@
+'''Sound File Generation '''
+
+import numpy as np
+from scipy.io import wavfile
+
+d1 = np.loadtxt('Template2020.txt')
+time = d1[:, 0]
+strain = d1[:, 1]
+
+
+N = len(time)            #no. of sample points
+ts = (time[N-1]-time[0])/N     #sampling interval
+fs = 1./ts               #sampling frequency
+
+
+# function to keep the data within integer limits, and write to wavfile:
+def write_wavfile(filename,fs,data):
+    d = np.int16(data/np.max(np.abs(data)) * 32767 * 0.9) #32767 * 0.9 (needs justifying)
+    wavfile.write(filename,int(fs), d)
+
+write_wavfile("TimeDomain1.wav",int(fs), strain)
+
+#%%
+'''Frequency Shifting the Wav file to Audible Chirp'''
+
+# function that shifts frequency of a band-passed signal
+def reqshift(data,fshift=100,sample_rate=4096):
+    """Frequency shift the signal by constant
+    """
+    x = np.fft.rfft(data)
+    T = len(data)/float(sample_rate)
+    df = 1.0/T
+    nbins = int(fshift/df)
+    # print T,df,nbins,x.real.shape
+    y = np.roll(x.real,nbins) + 1j*np.roll(x.imag,nbins)
+    y[0:nbins]=0.
+    z = np.fft.irfft(y)
+    return z
+
+# parameters for frequency shift
+fs = 4096
+fshift = 400.
+speedup = 1.
+fss = int(float(fs)*float(speedup))
+
+# shift frequency of the data
+d1shift = reqshift(strain,fshift=fshift,sample_rate=fs)
+
+#write the files
+write_wavfile("TimeDomainShift1.wav",int(fs), d1shift)
