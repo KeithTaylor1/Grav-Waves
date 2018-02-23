@@ -24,10 +24,11 @@ def colouredNoise(signal=None, txtout=False):
     txtout: bool
         Toggles text file output, defaults to false.
     
+    
     Returns
     -------
     noisyData-H1: np.array
-        Coloured noise calculated from LIGO data, added to artificial signal.
+        Coloured noise calculated from LIGO data added to artificial signal.
     '''
     
     import numpy as np
@@ -70,6 +71,7 @@ def colouredNoise(signal=None, txtout=False):
     elif len(hf) > len(nf):
         nf = np.interp(xf_h, xf_n, nf)
         xf = xf_h
+    else: xf = xf_n
     #get new time scale
     t = np.linspace(0., 2*(len(xf)-1)*1/(2*xf[-1]), 2*(len(xf)-1))
     
@@ -79,8 +81,8 @@ def colouredNoise(signal=None, txtout=False):
     
     if txtout:
         np.savetxt('noisyData-col.txt', np.array([t, d]).T)
-    else:
-        return np.array([t, d]).T
+    
+    return np.array([t, d]).T
         
     
     
