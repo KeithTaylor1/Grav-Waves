@@ -6,9 +6,6 @@ def matchedFilter(data, template=None, makePlots=False):
     Program performs matched filtering using the methods described in 
     Allen et al., 2012. 
     
-    ==================================================
-    ################### NEED TO IMPLEMENT WINDOWing!!!!!!!####################
-    =================================================
     
     Parameters
     ----------
@@ -23,12 +20,14 @@ def matchedFilter(data, template=None, makePlots=False):
     makePlots: Bool
         Toggles whether module returns maximum signal to noise ratio (SNR) or 
         creates plot of SNR in time domain.
-        
+    
+    
     Returns
     -------
     SNR: tuple (float64,float64)
         The maximum value of SNR for a given template.
-        
+    
+    
     Notes
     -----
     The template and sampling frequency MUST be the same. If template is 
@@ -105,7 +104,7 @@ def matchedFilter(data, template=None, makePlots=False):
     SNR = inner_dh_time / inner_hh
 
     # shift the SNR vector by the template length so that the peak is at the END of the template
-    peaksample = np.argmax(h)  # location of peak in the template
+    peaksample = np.argmax(abs(h))  # location of peak in the template
     SNR = np.roll(SNR, peaksample)
     SNR = abs(SNR)
     
