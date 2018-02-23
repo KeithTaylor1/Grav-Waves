@@ -1,8 +1,9 @@
 def templateGen(mA, mB, Ts, zeroPad=False, makePlots=False, savePlots=False, txtout=False):
     '''TemplateGen
-    Author: Emma
+    Author: Emma, Michael
     
     Produces model of GW from binary black hole merger at a distance of 3e24m
+    signal includes inspiral and ringdown.
     
     Parameters
     ----------
@@ -18,13 +19,13 @@ def templateGen(mA, mB, Ts, zeroPad=False, makePlots=False, savePlots=False, txt
         
     zeroPad: bool
         pads with zeros up to 32 sec, randomly locates signal in this range, to
-        be used before colouredNoiseGenerator
+        be used before colouredNoiseGenerator, defaults to false
     
     makePlots: bool
-        output plot of signal
+        toggles output plot of signal, defaults to false
         
     txtout: bool
-        output text file if true, else return signal
+        toggle output text file, defaults to false
         
     Return
     ------
@@ -47,15 +48,21 @@ def templateGen(mA, mB, Ts, zeroPad=False, makePlots=False, savePlots=False, txt
     r = 3.e24 #m
     t = 0.0 #s
     
-    mA = 50. * SM
-    mB = 50. * SM
-    
+    mA *= SM
+    mB *= SM
+    # complex frequency for a BH spin 0.7
+    x = 0.5326
+    y = 0.0808
+ 
     T=[]
     f=[]
     
     #Minimum separation
     a0 = (G * (mA + mB) / (pi*f_GW)**2) ** (1./3.)
     #print a0
+    
+    #Cut-off time
+    Tcutoff = ((5 * c**5) / (256 * G**3 * mA * mB * (mA + mB))) * (a0**4 - (((6 * G * (mA + mB)) / (c**2)) ** 4))
     
     #Merge Time
     Tmerge = (5 * c**5 * a0**4)/(256 * G**3 * mA * mB * (mA +mB))
@@ -67,7 +74,7 @@ def templateGen(mA, mB, Ts, zeroPad=False, makePlots=False, savePlots=False, txt
     
     #Calculates amplitude with increasing time
     
-    while t <= Tmerge:
+    while t <= Tcutoff:
         y = ( (G * (mA+mB) * a(mA, mB, G, c, t)**(-3.)) / (pi**2) ) ** (1./2.)
         z = ( (G**2 * mA * mB) * (a(mA, mB, G, c, t)**(-1)) ) / (c**4 * r)
         s = z * (sin(2*pi*t*y))
@@ -75,6 +82,25 @@ def templateGen(mA, mB, Ts, zeroPad=False, makePlots=False, savePlots=False, txt
         f.append(s)
         t += Ts
     #print t
+    
+    N = len(T) - 1
+    fstitch = f[N]
+    t=0.0
+    
+    #Ringdown
+    f_GW_RD = (c**3 * x * 1j) / (G * (mA + mB))
+    Tdamp = (G * (mA + mB)) / (c**3 * y)
+    
+    while t <= 3*Tdamp:
+        e1 = f_GW_RD * t
+        e2 = -t / Tdamp
+        z = fstitch * np.exp(e1) * np.exp(e2)
+        ts = t + Tcutoff
+        t += Ts
+        T.append(ts)
+        f.append(z)
+    #print ts
+
     
     #print len(T)
     
@@ -94,13 +120,15 @@ def templateGen(mA, mB, Ts, zeroPad=False, makePlots=False, savePlots=False, txt
             file.write(str(T[i]) + " " + str(f[i]) + "\n")
         file.close
     
-    if makePlots:    
-        plt.plot(T, f)
+    if makePlots:
+        plt.figure()
+        plt.plot(T, f, label='Template')
         #plt.xscale('log')
         plt.xlabel('Time/s')
         plt.ylabel('Strain')
         if savePlots: plt.savefig(f'Template{int(mA/SM)}_{int(mB/SM)}.jpg')
-        plt.grid
+        plt.legend(loc='best')
+        plt.grid()
         plt.show()
         
     return np.array([T,f]).T
