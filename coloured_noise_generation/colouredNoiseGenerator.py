@@ -80,7 +80,7 @@ def colouredNoise(signal=None, txtout=False):
     d = fft.irfft(df)
     
     if txtout:
-        np.savetxt('noisyData-col.txt', np.array([t, d]).T)
+        np.savetxt(f'colNoise-{filename}', np.array([t, d]).T)
     
     return np.array([t, d]).T
         
