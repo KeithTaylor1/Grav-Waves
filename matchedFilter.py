@@ -94,7 +94,7 @@ def matchedFilter(data, template=None, makePlots=False):
     df = fft.rfft(d*dwindow)/fs
     hf = fft.rfft(h*dwindow)/fs
     
-    # Calculate the matched filter and output in the time domain:
+    # Calculate the matched filter and output in the tmerge domain:
     inner_dh = df*np.conjugate(hf)/Sn_interp
     inner_dh_time = 2*fft.irfft(inner_dh)*fs
 
