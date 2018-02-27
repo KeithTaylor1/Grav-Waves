@@ -94,7 +94,7 @@ def templateGen(mA, mB, Ts, zeroPad=False, makePlots=False, savePlots=False, txt
     while t <= 3*Tdamp:
         e1 = f_GW_RD * t
         e2 = -t / Tdamp
-        z = fstitch * np.exp(e1) * np.exp(e2)
+        z = abs(fstitch * np.exp(e1) * np.exp(e2))
         ts = t + Tcutoff
         t += Ts
         T.append(ts)
@@ -114,19 +114,15 @@ def templateGen(mA, mB, Ts, zeroPad=False, makePlots=False, savePlots=False, txt
         f = np.pad(f, (0,len(T)-len(f)), 'constant', constant_values=(0,0))
     
     if txtout:
-        file = open(f'Template{int(mA/SM)}_{int(mB/SM)}.txt',"w")
-        #file.write("Time/s" + " " + "Strain" + "\n")
-        for i in range(len(T)):
-            file.write(str(T[i]) + " " + str(f[i]) + "\n")
-        file.close
-    
+        np.savetxt(f'Template{int(round(mA/SM))}_{int(round(mB/SM))}.txt', np.array([T, f]).T)
+
     if makePlots:
         plt.figure()
         plt.plot(T, f, label='Template')
         #plt.xscale('log')
         plt.xlabel('Time/s')
         plt.ylabel('Strain')
-        if savePlots: plt.savefig(f'Template{int(mA/SM)}_{int(mB/SM)}.jpg')
+        if savePlots: plt.savefig(f'Template{int(round(mA/SM))}_{int(round(mB/SM))}.jpg')
         plt.legend(loc='best')
         plt.grid()
         plt.show()
@@ -140,4 +136,4 @@ def templateGen(mA, mB, Ts, zeroPad=False, makePlots=False, savePlots=False, txt
 
 
 if __name__ == '__main__':
-    templateGen(50, 50, 1/4096, zeroPad=1, makePlots=1, txtout=1)
+    templateGen(56., 30., 1/4096, zeroPad=1, makePlots=1, txtout=1)
