@@ -46,15 +46,15 @@ def GWExtract(data=None, makePlots = 0):
         
     # Defining constants
     Ts = data[1,0]-data[0,0]  # Sample spacing
-    M_min = 45  # minimum mass in solar masses
-    M_max = 56  # maximum mass in solar masses
+    M_min = 20  # minimum mass in solar masses
+    M_max = 63  # maximum mass in solar masses
     
     out = []  # mA, mB, time of max and max SNR
     out_list = np.array([[0,0,0,0]])  # list of mA, mB and no. of iterations
     
     
     #For-loop of mB inside mA
-    massesA = range(M_min, M_max)  # range of mass of BHa in solar masses
+    massesA = range(M_min, M_max+1)  # range of mass of BHa in solar masses
     for mA in massesA:
         massesB = range(M_min, mA+1)  # range of mass of BHb in solar masses, avoid double counting to reduce runtime
         for mB in massesB:
@@ -76,7 +76,7 @@ def GWExtract(data=None, makePlots = 0):
     print('\nClosest template match:')
     print(f'mA: {out_list[Imax, 0]}')
     print(f'mB: {out_list[Imax, 1]}')    
-    print(f'match time: {out_list[Imax, 2]}')
+    print(f'match time: {data[int(out_list[Imax, 2]), 0]}')
     print(f'SNR peak: {out_list[Imax, 3]}\n')
             
     
