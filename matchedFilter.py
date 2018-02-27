@@ -83,7 +83,7 @@ def matchedFilter(data, template=None, makePlots=False):
     NOVL = NFFT/2
     
     psd_window = np.blackman(NFFT)
-    dwindow = signal.tukey(N)
+    dwindow = np.hanning(N)
     
     # PSD of the data
     Sn, freqs = ml.psd(d, Fs = fs, NFFT = NFFT, window=psd_window, noverlap=NOVL)
