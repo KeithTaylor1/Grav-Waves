@@ -35,7 +35,7 @@ def matchedFilter(data, template=None, makePlots=False):
     """
     
     import numpy as np
-    import scipy as sp
+    from scipy import signal
     from numpy import fft, sqrt
     import matplotlib.pyplot as pl
     import matplotlib.mlab as ml
@@ -76,14 +76,14 @@ def matchedFilter(data, template=None, makePlots=False):
     fs = 1./Ts  # sampling frequency
     # get Template frequency bins
     xf = np.fft.rfftfreq(N, Ts)
-        
+    Ts_f = abs(xf[1] - xf[0])
     
     #PSD parameters chosen to minimise spectral leakage, need to test and implement windowing
     NFFT = int(4*fs)
     NOVL = NFFT/2
     
     psd_window = np.blackman(NFFT)
-    dwindow = np.hanning(N)
+    dwindow = signal.tukey(N)
     
     # PSD of the data
     Sn, freqs = ml.psd(d, Fs = fs, NFFT = NFFT, window=psd_window, noverlap=NOVL)
@@ -99,7 +99,7 @@ def matchedFilter(data, template=None, makePlots=False):
     inner_dh_time = 2*fft.irfft(inner_dh)*fs
 
     # Normalize the matched filter output:
-    inner_hh = sum(2*(hf*np.conjugate(hf)/Sn_interp)*Ts)
+    inner_hh = sum((hf*np.conjugate(hf)/Sn_interp))*Ts_f
     inner_hh = sqrt(abs(inner_hh))
     SNR = inner_dh_time / inner_hh
 
@@ -108,15 +108,17 @@ def matchedFilter(data, template=None, makePlots=False):
     SNR = np.roll(SNR, peaksample)
     SNR = abs(SNR)
     
+    
     if makePlots:
         pl.figure()
         pl.plot(t, SNR, label='SNR')
+        pl.title(f'Mean SNR: {np.mean(SNR)}')
         pl.grid()
         pl.legend(loc='best')
         pl.xlabel('time')
         pl.ylabel('strain')    
-    else:
-        return (np.argmax(SNR), max(SNR))
+    
+    return (np.argmax(SNR), max(SNR))
     
     
     
@@ -137,4 +139,4 @@ if __name__ == '__main__':
         except FileNotFoundError:
             filename = input('File not found, please try again... ')
             
-    matchedFilter(data)
+    matchedFilter(data, makePlots=1)
