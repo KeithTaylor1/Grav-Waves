@@ -45,28 +45,23 @@ def templateGen(mA, mB, Ts, zeroPad=False, makePlots=False, savePlots=False, txt
     G = 6.667e-11 #m3 kg-1 s-2
     SM = 2.e30 #kg
     f_GW = 20 #Hz
-    r = 3.e24 #m
+    r = 8.e24 #m
     t = 0.0 #s
     
     mA *= SM
     mB *= SM
-    # complex frequency for a BH spin 0.7
-    x = 0.5326
-    y = 0.0808
+    # complex ringdown frequency for a BH spin 0.7
+    Fx = 0.5326
+    Fy = 0.0808
  
     T=[]
-    f=[]
+    S=[]
     
     #Minimum separation
     a0 = (G * (mA + mB) / (pi*f_GW)**2) ** (1./3.)
-    #print a0
     
     #Cut-off time
     Tcutoff = ((5 * c**5) / (256 * G**3 * mA * mB * (mA + mB))) * (a0**4 - (((6 * G * (mA + mB)) / (c**2)) ** 4))
-    
-    #Merge Time
-    Tmerge = (5 * c**5 * a0**4)/(256 * G**3 * mA * mB * (mA +mB))
-    #print Tmerge
     
     #Separation as a function of time
     def a(mA, mB, G, c, t):
@@ -75,34 +70,32 @@ def templateGen(mA, mB, Ts, zeroPad=False, makePlots=False, savePlots=False, txt
     #Calculates amplitude with increasing time
     
     while t <= Tcutoff:
-        y = ( (G * (mA+mB) * a(mA, mB, G, c, t)**(-3.)) / (pi**2) ) ** (1./2.)
-        z = ( (G**2 * mA * mB) * (a(mA, mB, G, c, t)**(-1)) ) / (c**4 * r)
-        s = z * (sin(2*pi*t*y))
+        f = ( (G * (mA+mB) * a(mA, mB, G, c, t)**(-3.)) / (pi**2) ) ** (1./2.)
+        h = ( (G**2 * mA * mB) * (a(mA, mB, G, c, t)**(-1)) ) / (c**4 * r)
+        s = h * (sin(2*pi*t*f))
         T.append(t)
-        f.append(s)
+        S.append(s)
         t += Ts
     #print t
     
     N = len(T) - 1
-    fstitch = f[N]
+    fstitch = S[N]
     t=0.0
     
     #Ringdown
-    f_GW_RD = (c**3 * x * 1j) / (G * (mA + mB))
-    Tdamp = (G * (mA + mB)) / (c**3 * y)
+    f_GW_RD = (c**3 * Fx * 1j) / (G * (mA + mB))
+    damp = (G * (mA + mB)) / (c**3 * Fy)
     
-    while t <= 3*Tdamp:
+    while t <= 3*damp:
         e1 = f_GW_RD * t
-        e2 = -t / Tdamp
-        z = abs(fstitch * np.exp(e1) * np.exp(e2))
+        e2 = -t / damp
+        z = np.real(fstitch * np.exp(e1) * np.exp(e2))
         ts = t + Tcutoff
         t += Ts
         T.append(ts)
-        f.append(z)
-    #print ts
-
+        S.append(z)
     
-    #print len(T)
+    
     
     #Zero pad data if noise going to be added
     if zeroPad:
@@ -110,15 +103,15 @@ def templateGen(mA, mB, Ts, zeroPad=False, makePlots=False, savePlots=False, txt
             T.append(t)
             t += Ts
         
-        f = np.pad(f, (int((32-Tmerge)*np.random.rand()/Ts),0), 'constant', constant_values=(0,0))
-        f = np.pad(f, (0,len(T)-len(f)), 'constant', constant_values=(0,0))
+        S = np.pad(S, (int((32-T[-1])*np.random.rand()/Ts),0), 'constant', constant_values=(0,0))
+        S = np.pad(S, (0,len(T)-len(S)), 'constant', constant_values=(0,0))
     
     if txtout:
-        np.savetxt(f'Template{int(round(mA/SM))}_{int(round(mB/SM))}.txt', np.array([T, f]).T)
+        np.savetxt(f'Template{int(round(mA/SM))}_{int(round(mB/SM))}.txt', np.array([T, S]).T)
 
     if makePlots:
         plt.figure()
-        plt.plot(T, f, label='Template')
+        plt.plot(T, S, label='Template')
         #plt.xscale('log')
         plt.xlabel('Time/s')
         plt.ylabel('Strain')
@@ -127,7 +120,7 @@ def templateGen(mA, mB, Ts, zeroPad=False, makePlots=False, savePlots=False, txt
         plt.grid()
         plt.show()
         
-    return np.array([T,f]).T
+    return np.array([T,S]).T
 
 
 
@@ -136,4 +129,4 @@ def templateGen(mA, mB, Ts, zeroPad=False, makePlots=False, savePlots=False, txt
 
 
 if __name__ == '__main__':
-    templateGen(56., 30., 1/4096, zeroPad=1, makePlots=1, txtout=1)
+    templateGen(56., 30., 1/4096, zeroPad=0, makePlots=1, txtout=0)
