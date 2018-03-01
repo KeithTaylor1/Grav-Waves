@@ -24,8 +24,8 @@ def matchedFilter(data, template=None, makePlots=False):
     
     Returns
     -------
-    SNR: tuple (float64,float64)
-        The maximum value of SNR for a given template.
+    SNR: tuple (float64,float64,float64)
+        The maximum value and index of SNR for a given template, also d_eff
     
     
     Notes
@@ -108,6 +108,8 @@ def matchedFilter(data, template=None, makePlots=False):
     SNR = np.roll(SNR, peaksample)
     SNR = abs(SNR)
     
+    # effective "distance"
+    d_eff = inner_hh/max(SNR)
     
     if makePlots:
         pl.figure()
@@ -118,7 +120,7 @@ def matchedFilter(data, template=None, makePlots=False):
         pl.xlabel('time')
         pl.ylabel('strain')    
     
-    return (np.argmax(SNR), max(SNR))
+    return (np.argmax(SNR), max(SNR), d_eff)
     
     
     
