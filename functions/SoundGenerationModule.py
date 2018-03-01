@@ -1,4 +1,4 @@
-def soundGeneration(signal=None, outputwav = None, outputshiftwav = None): #consider other parameters as inputs e.g. fs and fshift
+def soundGeneration(signal=None, outputwav = False, outputshiftwav = False): #consider other parameters as inputs e.g. fs and fshift
     ''' Sound File Generation
     
     Program takes input strain signal and initially produces a wav file 
@@ -61,7 +61,8 @@ def soundGeneration(signal=None, outputwav = None, outputshiftwav = None): #cons
         wavfile.write(filename,int(fs), d)
     
     if outputwav:
-        write_wavfile("TimeDomain.wav",int(Fs), h)
+        filename_1 = input("Input the Filename for the wav file of the signal (ending .wav): ")
+        write_wavfile(filename_1,int(Fs), h)
     
 
     '''Frequency Shifting the Wav file to Audible Chirp'''
@@ -91,7 +92,8 @@ def soundGeneration(signal=None, outputwav = None, outputshiftwav = None): #cons
     
     #write the files
     if outputshiftwav:
-        write_wavfile("TimeDomainShift.wav",int(fs), hshift)
+        filename_2 = input("Input the Filename for the wav file of the frequency shifted signal (ending .wav): ") 
+        write_wavfile(filename_2,int(fs), hshift)
     
    
     
@@ -101,4 +103,5 @@ def soundGeneration(signal=None, outputwav = None, outputshiftwav = None): #cons
     
 if __name__ == '__main__':
     soundGeneration()
+    
     
