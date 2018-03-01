@@ -1,8 +1,9 @@
 def templateGen(mA, mB, Ts, zeroPad=False, makePlots=False, savePlots=False, txtout=False):
     '''TemplateGen
-    Author: Emma
+    Author: Emma, Michael
     
     Produces model of GW from binary black hole merger at a distance of 3e24m
+    signal includes inspiral and ringdown.
     
     Parameters
     ----------
@@ -18,13 +19,13 @@ def templateGen(mA, mB, Ts, zeroPad=False, makePlots=False, savePlots=False, txt
         
     zeroPad: bool
         pads with zeros up to 32 sec, randomly locates signal in this range, to
-        be used before colouredNoiseGenerator
+        be used before colouredNoiseGenerator, defaults to false
     
     makePlots: bool
-        output plot of signal
+        toggles output plot of signal, defaults to false
         
     txtout: bool
-        output text file if true, else return signal
+        toggle output text file, defaults to false
         
     Return
     ------
@@ -44,22 +45,23 @@ def templateGen(mA, mB, Ts, zeroPad=False, makePlots=False, savePlots=False, txt
     G = 6.667e-11 #m3 kg-1 s-2
     SM = 2.e30 #kg
     f_GW = 20 #Hz
-    r = 3.e24 #m
+    r = 8.e24 #m
     t = 0.0 #s
     
-    mA = 50. * SM
-    mB = 50. * SM
-    
+    mA *= SM
+    mB *= SM
+    # complex ringdown frequency for a BH spin 0.7
+    Fx = 0.5326
+    Fy = 0.0808
+ 
     T=[]
-    f=[]
+    S=[]
     
     #Minimum separation
     a0 = (G * (mA + mB) / (pi*f_GW)**2) ** (1./3.)
-    #print a0
     
-    #Merge Time
-    Tmerge = (5 * c**5 * a0**4)/(256 * G**3 * mA * mB * (mA +mB))
-    #print Tmerge
+    #Cut-off time
+    Tcutoff = ((5 * c**5) / (256 * G**3 * mA * mB * (mA + mB))) * (a0**4 - (((6 * G * (mA + mB)) / (c**2)) ** 4))
     
     #Separation as a function of time
     def a(mA, mB, G, c, t):
@@ -67,16 +69,33 @@ def templateGen(mA, mB, Ts, zeroPad=False, makePlots=False, savePlots=False, txt
     
     #Calculates amplitude with increasing time
     
-    while t <= Tmerge:
-        y = ( (G * (mA+mB) * a(mA, mB, G, c, t)**(-3.)) / (pi**2) ) ** (1./2.)
-        z = ( (G**2 * mA * mB) * (a(mA, mB, G, c, t)**(-1)) ) / (c**4 * r)
-        s = z * (sin(2*pi*t*y))
+    while t <= Tcutoff:
+        f = ( (G * (mA+mB) * a(mA, mB, G, c, t)**(-3.)) / (pi**2) ) ** (1./2.)
+        h = ( (G**2 * mA * mB) * (a(mA, mB, G, c, t)**(-1)) ) / (c**4 * r)
+        s = h * (sin(2*pi*t*f))
         T.append(t)
-        f.append(s)
+        S.append(s)
         t += Ts
     #print t
     
-    #print len(T)
+    N = len(T) - 1
+    fstitch = S[N]
+    t=0.0
+    
+    #Ringdown
+    f_GW_RD = (c**3 * Fx * 1j) / (G * (mA + mB))
+    damp = (G * (mA + mB)) / (c**3 * Fy)
+    
+    while t <= 3*damp:
+        e1 = f_GW_RD * t
+        e2 = -t / damp
+        z = np.real(fstitch * np.exp(e1) * np.exp(e2))
+        ts = t + Tcutoff
+        t += Ts
+        T.append(ts)
+        S.append(z)
+    
+    t_end = T[-1]
     
     #Zero pad data if noise going to be added
     if zeroPad:
@@ -84,26 +103,24 @@ def templateGen(mA, mB, Ts, zeroPad=False, makePlots=False, savePlots=False, txt
             T.append(t)
             t += Ts
         
-        f = np.pad(f, (int((32-Tmerge)*np.random.rand()/Ts),0), 'constant', constant_values=(0,0))
-        f = np.pad(f, (0,len(T)-len(f)), 'constant', constant_values=(0,0))
+        S = np.pad(S, (int((32-t_end)*np.random.rand()/Ts),0), 'constant', constant_values=(0,0))
+        S = np.pad(S, (0,len(T)-len(S)), 'constant', constant_values=(0,0))
     
     if txtout:
-        file = open(f'Template{int(mA/SM)}_{int(mB/SM)}.txt',"w")
-        #file.write("Time/s" + " " + "Strain" + "\n")
-        for i in range(len(T)):
-            file.write(str(T[i]) + " " + str(f[i]) + "\n")
-        file.close
-    
-    if makePlots:    
-        plt.plot(T, f)
+        np.savetxt(f'Template{int(round(mA/SM))}_{int(round(mB/SM))}.txt', np.array([T, S]).T)
+
+    if makePlots:
+        plt.figure()
+        plt.plot(T, S, label='Template')
         #plt.xscale('log')
         plt.xlabel('Time/s')
         plt.ylabel('Strain')
-        if savePlots: plt.savefig(f'Template{int(mA/SM)}_{int(mB/SM)}.jpg')
-        plt.grid
+        if savePlots: plt.savefig(f'Template{int(round(mA/SM))}_{int(round(mB/SM))}.jpg')
+        plt.legend(loc='best')
+        plt.grid()
         plt.show()
         
-    return np.array([T,f]).T
+    return np.array([T,S]).T
 
 
 
@@ -112,4 +129,4 @@ def templateGen(mA, mB, Ts, zeroPad=False, makePlots=False, savePlots=False, txt
 
 
 if __name__ == '__main__':
-    templateGen(50, 50, 1/4096, zeroPad=1, makePlots=1, txtout=1)
+    templateGen(56., 46., 1/4096, zeroPad=1, makePlots=1, txtout=1)
