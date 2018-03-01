@@ -61,7 +61,7 @@ def soundGeneration(signal=None, outputwav = False, outputshiftwav = False): #co
         wavfile.write(filename,int(fs), d)
     
     if outputwav:
-        filename_1 = input("Input the Filename for the wav file of the signal (ending .wav): ")
+        filename_1 = input("Input the Filename for the wav file of the signal (ending \".wav\"): ")
         write_wavfile(filename_1,int(Fs), h)
     
 
@@ -92,7 +92,7 @@ def soundGeneration(signal=None, outputwav = False, outputshiftwav = False): #co
     
     #write the files
     if outputshiftwav:
-        filename_2 = input("Input the Filename for the wav file of the frequency shifted signal (ending .wav): ") 
+        filename_2 = input("Input the Filename for the wav file of the frequency shifted signal (ending \".wav\"): ") 
         write_wavfile(filename_2,int(fs), hshift)
     
    
