@@ -15,7 +15,13 @@ def GWExtract(data=None, makePlots = 0):
         noisy LIGO data in two columns, LH time RH strain.
 
     makePlots: bool
-        Toggles output of graphs of SNR for matched template, 
+        Toggles output of graphs of SNR for matched template
+        
+        
+    Returns
+    -------
+    
+    list of: mA, mB, merge time and SNR peak value
     
     
     Notes
@@ -46,11 +52,11 @@ def GWExtract(data=None, makePlots = 0):
         
     # Defining constants
     Ts = data[1,0]-data[0,0]  # Sample spacing
-    M_min = 20  # minimum mass in solar masses
-    M_max = 63  # maximum mass in solar masses
+    M_min = 45  # minimum mass in solar masses
+    M_max = 58  # maximum mass in solar masses
     
     out = []  # mA, mB, time of max and max SNR
-    out_list = np.array([[0,0,0,0]])  # list of mA, mB and no. of iterations
+    out_list = np.array([[0,0,0,0,0]])  # list of mA, mB and no. of iterations
     
     
     #For-loop of mB inside mA
@@ -64,7 +70,7 @@ def GWExtract(data=None, makePlots = 0):
             
             # Call Matched filter Function for the Signal-to-Noise Ratio
             SNR = matchedFilter(data,Template) 
-            out = [mA, mB, SNR[0], SNR[1]]
+            out = [mA, mB, SNR[0], SNR[1], SNR[2]]
             print(out)
             out_list = np.append(out_list, [out],axis=0)
         
@@ -73,37 +79,46 @@ def GWExtract(data=None, makePlots = 0):
     Imax = np.argmax(np.array(out_list)[:, 3])  # itration number of the maximum value SNR
     matchedTemplate = templateGen(out_list[Imax, 0], out_list[Imax, 1], Ts) 
     
+    outs = [out_list[Imax, 0], out_list[Imax, 1], data[int(out_list[Imax, 2]), 0], out_list[Imax, 3], out_list[Imax, 4]]
     print('\nClosest template match:')
-    print(f'mA: {out_list[Imax, 0]}')
-    print(f'mB: {out_list[Imax, 1]}')    
-    print(f'match time: {data[int(out_list[Imax, 2]), 0]}')
-    print(f'SNR peak: {out_list[Imax, 3]}\n')
-            
+    print(f'mA: {outs[0]}')
+    print(f'mB: {outs[1]}')    
+    print(f'time of merge: {outs[2]}')
+    print(f'SNR peak: {outs[3]}')
+    print(f'd_eff: {outs[4]}\n')
+         
     
     if makePlots:
         
         SNR = matchedFilter(data, matchedTemplate, makePlots=1)
-        templateGen(out_list[Imax, 0], out_list[Imax, 1], Ts, makePlots=1)
         
-        # PSD of the data
+        # plot whitened signal and template
+        #Interpolated PSD 
         Sn, freqs = ml.psd(data[:,1], Fs = 1./Ts, NFFT = int(4./Ts), window=np.blackman(int(4./Ts)), noverlap=int(2./Ts))
-        #Interpolate to get the PSD values at the needed frequencies
         Sn_interp = np.interp(np.fft.rfftfreq(len(data[:,0]),Ts), freqs, Sn)
-        # LIGO frequency range 43-800Hz
-        # bb and ab are array_like's
+        # LIGO frequency range 43-400Hz 
+        # bb and ab are array_like
         # bb is the numerator coefficient vector of the filter
         # ab is the denominator coefficient vector of the filter
-        bb, ab = signal.butter(4, [43*2.*Ts, 800*2.*Ts], btype='band')
-        whitened = WhitenFunc(data[:,1], len(data[:,0]), Sn_interp)
-        # filter to get signal
-        extract= signal.filtfilt(bb, ab, whitened)
+        bb, ab = signal.butter(4, [43*2.*Ts, 400*2.*Ts], btype='band')
+        whitened = WhitenFunc(data[:,1], Sn_interp, Ts)
+        # filter to get signal and normalise
+        extract= signal.filtfilt(bb, ab, whitened)/np.sqrt((400.-43.)*Ts*2)
+        
+        matchedTemplate = np.pad(matchedTemplate[:,1], (0,len(data[:,1])-len(matchedTemplate[:,1])), 'constant', constant_values=(0,0))
+        matchedTemplate = np.roll(matchedTemplate,int(out_list[Imax, 2]-np.argmax(abs(matchedTemplate))))/outs[4]
         
         pl.figure()
         pl.plot(data[:, 0],extract, label='extracted signal')
+        pl.plot(data[:,0],matchedTemplate, label='matched template')
+        pl.xlim([outs[2]-1, outs[2]+1])
+        pl.ylim([-10, 10])
         pl.legend(loc='best')
         pl.grid()
+        pl.show()
     
-  
+    
+    return outs
 
   
 if __name__ == '__main__':
