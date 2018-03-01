@@ -1,29 +1,35 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Feb 20 15:53:05 2018
-@author: njg573
-"""
-
-def WhitenFunc(data, N, Pxx):
+def WhitenFunc(data, Sn_interp, Ts):
+    '''
+    Created on Tue Feb 20 15:53:05 2018
+    @author: njg573, MNS543
+    
+    Whitening  - transform to freq domain, divide by asd, transform back
+    also plotting the whitened data in the time domain
+    
+    
+    Parameters
+    ----------
+    
+    data: float64 numpy array
+        LIGO strain data in time domain
+        
+    Sn_interp: float64 numpy array
+        interpolated PSD of data, should have same length
+    
+    Ts: float64
+        sample spacing of data
+        
+        
+    Returns
+    -------
+    
+    White_d: float64 numpy array
+        whitened strain data
+        
+    '''
     
     import numpy as np
-    from scipy import fftpack as fftp
-    
-    '''Whitening  - transform to freq domain, divide by asd, transform back
-   also plotting the whitened data in the time domain'''
-
-    
-    #convert to frequency domain
-    fft2 = fftp.fft(data) #2 sided fft
-    fft1 = fft2[0:(N//2)+1] #1 sided fft
-    
-    #divide by sqrt of psd to whiten
-    whitened_freq= fft1/ np.sqrt(Pxx)
-    
-    #convert back to time domain
-    whitened_time = np.fft.irfft(whitened_freq)
-    
-    
-   
-    
-    return whitened_freq, whitened_time
+    df = np.fft.rfft(data)
+    white_df = df / np.sqrt(Sn_interp) * np.sqrt(Ts*2)
+    white_d = np.fft.irfft(white_df)
+    return white_d
