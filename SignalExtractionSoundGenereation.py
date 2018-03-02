@@ -38,7 +38,7 @@ def GWExtract(data=None, makePlots = 0):
     from matchedFilter import matchedFilter
     from TemplateSignalGenerator import templateGen
     from WhitenFunc import WhitenFunc
-    
+    from SoundGenerationModule import soundGeneration 
     
     if data == None:
         # load data from *.txt file, checking user input
@@ -117,6 +117,11 @@ def GWExtract(data=None, makePlots = 0):
         pl.grid()
         pl.show()
     
+    temp = np.array([data[:,0],matchedTemplate]).T
+    ext = np.array([data[:,0],extract]).T
+    
+    soundGeneration(signal = temp, outputwav = 1, outputshiftwav = 1) #need to increase volume 
+    soundGeneration(signal = ext, outputwav = 1,outputshiftwav = 1)
     
     return outs
 
