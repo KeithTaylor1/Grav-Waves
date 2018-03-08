@@ -1,4 +1,4 @@
-def GWExtract(data=None, makePlots = 0):    
+def GWExtract(data=None, makePlots=False, soundOut=False):    
     """
     Created on Wed Feb 14 10:28:01 2018
     
@@ -92,36 +92,47 @@ def GWExtract(data=None, makePlots = 0):
         
         SNR = matchedFilter(data, matchedTemplate, makePlots=1)
         
-        # plot whitened signal and template
+        
         #Interpolated PSD 
         Sn, freqs = ml.psd(data[:,1], Fs = 1./Ts, NFFT = int(4./Ts), window=np.blackman(int(4./Ts)), noverlap=int(2./Ts))
         Sn_interp = np.interp(np.fft.rfftfreq(len(data[:,0]),Ts), freqs, Sn)
-        # LIGO frequency range 43-400Hz 
-        # bb and ab are array_like
-        # bb is the numerator coefficient vector of the filter
-        # ab is the denominator coefficient vector of the filter
-        bb, ab = signal.butter(4, [43*2.*Ts, 400*2.*Ts], btype='band')
-        whitened = WhitenFunc(data[:,1], Sn_interp, Ts)
-        # filter to get signal and normalise
-        extract= signal.filtfilt(bb, ab, whitened)/np.sqrt((400.-43.)*Ts*2)
         
+        # LIGO frequency range 43-400Hz 
+        normalization = 1./np.sqrt((400.-43.)*Ts*2)
+        bb, ab = signal.butter(4, [43*2.*Ts, 400*2.*Ts], btype='band')
+        
+        # Whiten data
+        signal_w = WhitenFunc(data[:,1], Sn_interp, Ts)
+        # filter data to get signal and normalise
+        signal_bp = signal.filtfilt(bb, ab, signal_w)*normalization
+        
+        # end pad template with 0s and time shift to match detection time, scaling output.
         matchedTemplate = np.pad(matchedTemplate[:,1], (0,len(data[:,1])-len(matchedTemplate[:,1])), 'constant', constant_values=(0,0))
         matchedTemplate = np.roll(matchedTemplate,int(out_list[Imax, 2]-np.argmax(abs(matchedTemplate))))/outs[4]
+        # whiten template
+        matchedTemplate_w = WhitenFunc(matchedTemplate, Sn_interp, Ts)
+        # filter template and normalise
+        matchedTemplate_bp = signal.filtfilt(bb, ab, matchedTemplate_w)*normalization
+        
         
         pl.figure()
-        pl.plot(data[:, 0],extract, label='extracted signal')
-        pl.plot(data[:,0],matchedTemplate, label='matched template')
+        pl.plot(data[:, 0],signal_bp, label='extracted signal')
+        pl.plot(data[:,0],matchedTemplate_bp, label='matched template')
         pl.xlim([outs[2]-1, outs[2]+1])
-        pl.ylim([-10, 10])
+        #pl.ylim([-10, 10])
         pl.legend(loc='best')
         pl.grid()
         pl.show()
     
-    temp = np.array([data[:,0],matchedTemplate]).T
-    ext = np.array([data[:,0],extract]).T
     
-    soundGeneration(signal = temp, outputwav = 1, outputshiftwav = 1) #need to increase volume 
-    soundGeneration(signal = ext, outputwav = 1,outputshiftwav = 1)
+    # create sound files
+    temp = np.array([data[:,0],matchedTemplate_bp]).T
+    ext = np.array([data[:,0],signal_bp]).T
+    
+    Tm = outs[2]
+    
+    soundGeneration(signal=temp, Tm=Tm, outputwav=soundOut, outputshiftwav=soundOut) #need to increase volume 
+    soundGeneration(signal=ext, Tm=Tm, outputwav=soundOut, outputshiftwav=soundOut)
     
     return outs
 
