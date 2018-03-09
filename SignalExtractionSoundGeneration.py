@@ -98,8 +98,8 @@ def GWExtract(data=None, makePlots=False, soundOut=False):
         Sn_interp = np.interp(np.fft.rfftfreq(len(data[:,0]),Ts), freqs, Sn)
         
         # LIGO frequency range 43-400Hz 
-        normalization = 1./np.sqrt((400.-43.)*Ts*2)
-        bb, ab = signal.butter(4, [43*2.*Ts, 400*2.*Ts], btype='band')
+        normalization = 1./np.sqrt((400.-43.)*Ts*2)  # normalization for whitening and bp filter
+        bb, ab = signal.butter(4, [43*2.*Ts, 400*2.*Ts], btype='band')  # coefficients for bp filter
         
         # Whiten data
         signal_w = WhitenFunc(data[:,1], Sn_interp, Ts)
@@ -108,7 +108,7 @@ def GWExtract(data=None, makePlots=False, soundOut=False):
         
         # end pad template with 0s and time shift to match detection time, scaling output.
         matchedTemplate = np.pad(matchedTemplate[:,1], (0,len(data[:,1])-len(matchedTemplate[:,1])), 'constant', constant_values=(0,0))
-        matchedTemplate = np.roll(matchedTemplate,int(out_list[Imax, 2]-np.argmax(abs(matchedTemplate))))/outs[4]
+        matchedTemplate = np.roll(matchedTemplate,int(out_list[Imax, 2]-np.argmax(abs(matchedTemplate))))
         # whiten template
         matchedTemplate_w = WhitenFunc(matchedTemplate, Sn_interp, Ts)
         # filter template and normalise
@@ -119,11 +119,16 @@ def GWExtract(data=None, makePlots=False, soundOut=False):
         pl.plot(data[:, 0],signal_bp, label='extracted signal')
         pl.plot(data[:,0],matchedTemplate_bp, label='matched template')
         pl.xlim([outs[2]-1, outs[2]+1])
-        #pl.ylim([-10, 10])
+        pl.ylim([-10, 10])
+        pl.xlabel('time (s)')
+        pl.ylabel('Whitened Strain (noise stdev)')
         pl.legend(loc='best')
+        pl.title('Whitened Data Around Event')
+        pl.subtitle(f'Closest template match:\nmA: {outs[0]} mB: {outs[1]} \ntime of merge: {outs[2]} SNR peak: {outs[3]}')
         pl.grid()
+        pl.savefig('WhitenedEventData.pdf')
         pl.show()
-    
+        
     
     # create sound files
     temp = np.array([data[:,0],matchedTemplate_bp]).T
